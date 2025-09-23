@@ -1,270 +1,139 @@
-# Image Rotation using NVIDIA NPP with CUDA
+# CUDA Image Pipeline (Gaussian Blur + Sobel) with Multi-Stream
 
 ## Overview
+This project implements a GPU image-processing pipeline in CUDA that applies a **separable Gaussian blur** followed by **Sobel edge detection** over **batches of large images**. It demonstrates:
+- Running on tens of large frames (e.g., 20–40 images at 1080p–1440p, and 4K batches).
+- Using **multiple CUDA streams** to overlap H2D/D2H transfers with device computation.
 
-This project demonstrates the use of NVIDIA Performance Primitives (NPP) library with CUDA to perform image rotation. The goal is to utilize GPU acceleration to efficiently rotate a given image by a specified angle, leveraging the computational power of modern GPUs. The project is a part of the CUDA at Scale for the Enterprise course and serves as a template for understanding how to implement basic image processing operations using CUDA and NPP.
+Outputs are written as `.pgm` images (blur + edges) into `out/results/`.
 
-## Code Organization
+---
 
-```bin/```
-This folder should hold all binary/executable code that is built automatically or manually. Executable code should have use the .exe extension or programming language-specific extension.
+## Repository Layout
+bin/ # Built executable(s)
+data/ # (optional) input assets if needed
+lib/ # (optional) third-party libs
+out/
+results/ # PGM outputs (*_blur.pgm, *_edges.pgm)
+logs/ # timings.csv (optional)
+submission/ # env + run logs for Coursera
+src/
+main.cu # entry point / host orchestration
+kernels.cuh # CUDA kernels (Gaussian + Sobel)
+utils.hpp # helpers (alloc, I/O)
+timers.hpp # simple timing macros/utilities
+Makefile # Linux/macOS build
+build_windows.ps1 # Windows build (CUDA + MSVC)
+run_samples.ps1 # Runs big cases + writes logs + ZIP evidence
 
-```data/```
-This folder should hold all example data in any format. If the original data is rather large or can be brought in via scripts, this can be left blank in the respository, so that it doesn't require major downloads when all that is desired is the code/structure.
-
-```lib/```
-Any libraries that are not installed via the Operating System-specific package manager should be placed here, so that it is easier for inclusion/linking.
-
-```src/```
-The source code should be placed here in a hierarchical fashion, as appropriate.
-
-```README.md```
-This file should hold the description of the project so that anyone cloning or deciding if they want to clone this repository can understand its purpose to help with their decision.
-
-```INSTALL```
-This file should hold the human-readable set of instructions for installing the code so that it can be executed. If possible it should be organized around different operating systems, so that it can be done by as many people as possible with different constraints.
-
-```Makefile or CMAkeLists.txt or build.sh```
-There should be some rudimentary scripts for building your project's code in an automatic fashion.
-
-```run.sh```
-An optional script used to run your executable code, either with or without command-line arguments.
-
-## Key Concepts
-
-Performance Strategies, Image Processing, NPP Library
-
-## Supported SM Architectures
-
-[SM 3.5 ](https://developer.nvidia.com/cuda-gpus)  [SM 3.7 ](https://developer.nvidia.com/cuda-gpus)  [SM 5.0 ](https://developer.nvidia.com/cuda-gpus)  [SM 5.2 ](https://developer.nvidia.com/cuda-gpus)  [SM 6.0 ](https://developer.nvidia.com/cuda-gpus)  [SM 6.1 ](https://developer.nvidia.com/cuda-gpus)  [SM 7.0 ](https://developer.nvidia.com/cuda-gpus)  [SM 7.2 ](https://developer.nvidia.com/cuda-gpus)  [SM 7.5 ](https://developer.nvidia.com/cuda-gpus)  [SM 8.0 ](https://developer.nvidia.com/cuda-gpus)  [SM 8.6 ](https://developer.nvidia.com/cuda-gpus)
-
-## Supported OSes
-
-Linux, Windows
-
-## Supported CPU Architecture
-
-x86_64, ppc64le, armv7l
-
-## CUDA APIs involved
-
-## Dependencies needed to build/run
-[FreeImage](../../README.md#freeimage), [NPP](../../README.md#npp)
-
-## Prerequisites
-
-Download and install the [CUDA Toolkit 11.4](https://developer.nvidia.com/cuda-downloads) for your corresponding platform.
-Make sure the dependencies mentioned in [Dependencies]() section above are installed.
-
-## Build and Run
-
-### Windows
-The Windows samples are built using the Visual Studio IDE. Solution files (.sln) are provided for each supported version of Visual Studio, using the format:
-```
-*_vs<version>.sln - for Visual Studio <version>
-```
-Each individual sample has its own set of solution files in its directory:
-
-To build/examine all the samples at once, the complete solution files should be used. To build/examine a single sample, the individual sample solution files should be used.
-> **Note:** Some samples require that the Microsoft DirectX SDK (June 2010 or newer) be installed and that the VC++ directory paths are properly set up (**Tools > Options...**). Check DirectX Dependencies section for details."
-
-### Linux
-The Linux samples are built using makefiles. To use the makefiles, change the current directory to the sample directory you wish to build, and run make:
-```
-$ cd <sample_dir>
-$ make
-```
-The samples makefiles can take advantage of certain options:
-*  **TARGET_ARCH=<arch>** - cross-compile targeting a specific architecture. Allowed architectures are x86_64, ppc64le, armv7l.
-    By default, TARGET_ARCH is set to HOST_ARCH. On a x86_64 machine, not setting TARGET_ARCH is the equivalent of setting TARGET_ARCH=x86_64.<br/>
-`$ make TARGET_ARCH=x86_64` <br/> `$ make TARGET_ARCH=ppc64le` <br/> `$ make TARGET_ARCH=armv7l` <br/>
-    See [here](http://docs.nvidia.com/cuda/cuda-samples/index.html#cross-samples) for more details.
-*   **dbg=1** - build with debug symbols
-    ```
-    $ make dbg=1
-    ```
-*   **SMS="A B ..."** - override the SM architectures for which the sample will be built, where `"A B ..."` is a space-delimited list of SM architectures. For example, to generate SASS for SM 50 and SM 60, use `SMS="50 60"`.
-    ```
-    $ make SMS="50 60"
-    ```
-
-*  **HOST_COMPILER=<host_compiler>** - override the default g++ host compiler. See the [Linux Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#system-requirements) for a list of supported host compilers.
-```
-    $ make HOST_COMPILER=g++
-```
-
-
-## Running the Program
-After building the project, you can run the program using the following command:
-
-```bash
+yaml
 Copy code
-make run
-```
 
-This command will execute the compiled binary, rotating the input image (Lena.png) by 45 degrees, and save the result as Lena_rotated.png in the data/ directory.
+---
 
-If you wish to run the binary directly with custom input/output files, you can use:
+## Quickstart (Windows)
 
-```bash
-- Copy code
-./bin/imageRotationNPP --input data/Lena.png --output data/Lena_rotated.png
-```
+**Prerequisites**
+- NVIDIA CUDA Toolkit (includes `nvcc`)
+- Visual Studio **Build Tools 2022** with **Desktop development with C++**
 
-- Cleaning Up
-To clean up the compiled binaries and other generated files, run:
-
-
-```bash
-- Copy code
-make clean
-```
-
-This will remove all files in the bin/ directory.
-## Resultados r�pidos
-
-Comando:
-.\bin\image_pipeline.exe --n 20 --w 2560 --h 1440 --streams 8 --sigma 1.6
-
-Salida:
-Config: 2560x1440, images=20, streams=8, tpb=256, sigma=1.60
-Timing(ms): H2D=6.971 BLUR=33.267 SOBEL=1.132 D2H=104.127 TOTAL=627.521
-Los resultados se guardan en out/results/ (archivos PGM de blur y bordes).
-#### Build (Windows)
-
+**Build**
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
-Build (Linux/macOS)
-bash
-Copy code
-make
-Run
+Run (example)
+
 powershell
 Copy code
 .\bin\image_pipeline.exe --n 20 --w 2560 --h 1440 --streams 8 --sigma 1.6
-Example output:
+Expected console format:
 
 makefile
 Copy code
 Config: 2560x1440, images=20, streams=8, tpb=256, sigma=1.60
 Timing(ms): H2D=6.971  BLUR=33.267  SOBEL=1.132  D2H=104.127  TOTAL=627.521
-Outputs are written as PGM files in out/results/ (*_blur.pgm, *_edges.pgm).
+Outputs:
 
-Reproduce evidence (logs + zip)
-powershell
-Copy code
-powershell -ExecutionPolicy Bypass -File .\run_samples.ps1
-This script runs three large cases, writes logs to out/submission/, a CSV to out/logs/timings.csv, and creates submission_evidence.zip in the repo root.
-#### Build (Windows)
+out/results/img_XXXXX_blur.pgm
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
-Build (Linux/macOS)
+out/results/img_XXXXX_edges.pgm
+
+Quickstart (Linux/macOS)
+Prerequisites
+
+CUDA Toolkit with nvcc
+
+gcc/clang toolchain
+
+Build
+
 bash
 Copy code
 make
-Run
-powershell
-Copy code
-.\bin\image_pipeline.exe --n 20 --w 2560 --h 1440 --streams 8 --sigma 1.6
-Example output:
+Run (example)
 
-makefile
-Copy code
-Config: 2560x1440, images=20, streams=8, tpb=256, sigma=1.60
-Timing(ms): H2D=6.971  BLUR=33.267  SOBEL=1.132  D2H=104.127  TOTAL=627.521
-Outputs are written as PGM files in out/results/ (*_blur.pgm, *_edges.pgm).
-
-Reproduce evidence (logs + zip)
-powershell
-Copy code
-powershell -ExecutionPolicy Bypass -File .\run_samples.ps1
-This script runs three large cases, writes logs to out/submission/, a CSV to out/logs/timings.csv, and creates submission_evidence.zip in the repo root.
-## Build (Windows)
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
-Build (Linux/macOS)
 bash
 Copy code
-make
-Run
+./bin/image_pipeline.exe --n 20 --w 2560 --h 1440 --streams 8 --sigma 1.6
+Command-Line Interface
+php
+Copy code
+image_pipeline.exe
+  --n <int>        # number of images (batch size)
+  --w <int>        # image width
+  --h <int>        # image height
+  --streams <int>  # number of CUDA streams (e.g., 1,4,8,12)
+  --sigma <float>  # Gaussian sigma (kernel derived internally)
+  --tpb <int>      # optional: threads per block (default 256)
+Examples:
+
 powershell
 Copy code
-.\bin\image_pipeline.exe --n 20 --w 2560 --h 1440 --streams 8 --sigma 1.6
-Example output:
+# Many large frames w/ overlap
+.\bin\image_pipeline.exe --n 30 --w 2560 --h 1440 --streams 8 --sigma 1.6
 
+# Full-HD batch
+.\bin\image_pipeline.exe --n 40 --w 1920 --h 1080 --streams 8 --sigma 1.4
+
+# 4K batch
+.\bin\image_pipeline.exe --n 12 --w 3840 --h 2160 --streams 8 --sigma 2.0
+Reproduce Evidence (logs + ZIP)
+This script runs three large cases, writes raw logs under out/submission/, appends out/logs/timings.csv, and creates submission_evidence.zip in the repo root.
+
+powershell
+Copy code
+powershell -ExecutionPolicy Bypass -File .\run_samples.ps1
+Upload submission_evidence.zip to Coursera as “Proof of execution artifacts”.
+
+Example Results (captured on Windows)
 makefile
 Copy code
+# 20 images @ 2560x1440, streams=8, sigma=1.6
 Config: 2560x1440, images=20, streams=8, tpb=256, sigma=1.60
 Timing(ms): H2D=6.971  BLUR=33.267  SOBEL=1.132  D2H=104.127  TOTAL=627.521
-Outputs are written as PGM files in out/results/ (*_blur.pgm, *_edges.pgm).
+PGM files are written into out/results/ as *_blur.pgm and *_edges.pgm.
 
-Reproduce evidence (logs + zip)
-powershell
+Implementation Notes
+Separable Gaussian: two 1D passes (X then Y) reduce arithmetic vs full 2D convolution.
+
+Sobel: gradient magnitude from horizontal/vertical filters.
+
+Multi-stream: chunked batches mapped to CUDA streams to overlap transfers and kernels.
+
+Timing: simple host-side timers; optional CSV aggregation.
+
+Troubleshooting
+nvcc fatal: Cannot find compiler 'cl.exe' (Windows)
+Install VS 2022 Build Tools and include Desktop development with C++. Re-run build_windows.ps1.
+
+Can’t view .pgm
+Use IrfanView, XnView, or convert to PNG:
+
+sql
 Copy code
-powershell -ExecutionPolicy Bypass -File .\run_samples.ps1
-This script runs three large cases, writes logs to out/submission/, a CSV to out/logs/timings.csv, and creates submission_evidence.zip in the repo root.
-## Build (Windows)
+magick convert img_00000_edges.pgm img_00000_edges.png
+Long D2H time
+Try increasing streams or using pinned host memory (future work).
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
-Build (Linux/macOS)
-bash
-Copy code
-make
-Run
-powershell
-Copy code
-.\bin\image_pipeline.exe --n 20 --w 2560 --h 1440 --streams 8 --sigma 1.6
-Example output:
+License
+GPL-3.0 (see LICENSE).
 
-makefile
-Copy code
-Config: 2560x1440, images=20, streams=8, tpb=256, sigma=1.60
-Timing(ms): H2D=6.971  BLUR=33.267  SOBEL=1.132  D2H=104.127  TOTAL=627.521
-Outputs are written as PGM files in out/results/ (*_blur.pgm, *_edges.pgm).
-
-Reproduce evidence (logs + zip)
-powershell
-Copy code
-powershell -ExecutionPolicy Bypass -File .\run_samples.ps1
-This script runs three large cases, writes logs to out/submission/, a CSV to out/logs/timings.csv, and creates submission_evidence.zip in the repo root.
-## Build (Windows)
-
-~~~powershell
-powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
-~~~
-
-## Build (Linux/macOS)
-
-~~~bash
-make
-~~~
-
-## Run
-
-~~~powershell
-.\bin\image_pipeline.exe --n 20 --w 2560 --h 1440 --streams 8 --sigma 1.6
-~~~
-
-Example output:
-~~~text
-Config: 2560x1440, images=20, streams=8, tpb=256, sigma=1.60
-Timing(ms): H2D=6.971  BLUR=33.267  SOBEL=1.132  D2H=104.127  TOTAL=627.521
-~~~
-
-Outputs are written as PGM files in `out/results/` (`*_blur.pgm`, `*_edges.pgm`).
-
-## Reproduce evidence (logs + zip)
-
-~~~powershell
-powershell -ExecutionPolicy Bypass -File .\run_samples.ps1
-~~~
-
-This script runs three large cases, writes logs to `out/submission/`, a CSV to `out/logs/timings.csv`, and creates `submission_evidence.zip` in the repo root.
-## Quick Evidence
-
-- Images produced: **@(Get-ChildItem out\results\*_blur.pgm | Measure-Object | % Count)** blur +
-  **@(Get-ChildItem out\results\*_edges.pgm | Measure-Object | % Count)** edges (see `out/results/`).
-- Timings CSV: see `out/logs/timings.csv`. Sample rows are included in `out/submission/run_*.txt`.
