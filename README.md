@@ -263,3 +263,8 @@ powershell -ExecutionPolicy Bypass -File .\run_samples.ps1
 ~~~
 
 This script runs three large cases, writes logs to `out/submission/`, a CSV to `out/logs/timings.csv`, and creates `submission_evidence.zip` in the repo root.
+## Quick Evidence
+
+- Images produced: **@(Get-ChildItem out\results\*_blur.pgm | Measure-Object | % Count)** blur +
+  **@(Get-ChildItem out\results\*_edges.pgm | Measure-Object | % Count)** edges (see `out/results/`).
+- Timings CSV: see `out/logs/timings.csv`. Sample rows are included in `out/submission/run_*.txt`.
