@@ -180,3 +180,53 @@ powershell
 Copy code
 powershell -ExecutionPolicy Bypass -File .\run_samples.ps1
 This script runs three large cases, writes logs to out/submission/, a CSV to out/logs/timings.csv, and creates submission_evidence.zip in the repo root.
+## Build (Windows)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
+Build (Linux/macOS)
+bash
+Copy code
+make
+Run
+powershell
+Copy code
+.\bin\image_pipeline.exe --n 20 --w 2560 --h 1440 --streams 8 --sigma 1.6
+Example output:
+
+makefile
+Copy code
+Config: 2560x1440, images=20, streams=8, tpb=256, sigma=1.60
+Timing(ms): H2D=6.971  BLUR=33.267  SOBEL=1.132  D2H=104.127  TOTAL=627.521
+Outputs are written as PGM files in out/results/ (*_blur.pgm, *_edges.pgm).
+
+Reproduce evidence (logs + zip)
+powershell
+Copy code
+powershell -ExecutionPolicy Bypass -File .\run_samples.ps1
+This script runs three large cases, writes logs to out/submission/, a CSV to out/logs/timings.csv, and creates submission_evidence.zip in the repo root.
+## Build (Windows)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
+Build (Linux/macOS)
+bash
+Copy code
+make
+Run
+powershell
+Copy code
+.\bin\image_pipeline.exe --n 20 --w 2560 --h 1440 --streams 8 --sigma 1.6
+Example output:
+
+makefile
+Copy code
+Config: 2560x1440, images=20, streams=8, tpb=256, sigma=1.60
+Timing(ms): H2D=6.971  BLUR=33.267  SOBEL=1.132  D2H=104.127  TOTAL=627.521
+Outputs are written as PGM files in out/results/ (*_blur.pgm, *_edges.pgm).
+
+Reproduce evidence (logs + zip)
+powershell
+Copy code
+powershell -ExecutionPolicy Bypass -File .\run_samples.ps1
+This script runs three large cases, writes logs to out/submission/, a CSV to out/logs/timings.csv, and creates submission_evidence.zip in the repo root.
