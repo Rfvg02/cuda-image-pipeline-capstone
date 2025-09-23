@@ -121,3 +121,12 @@ make clean
 ```
 
 This will remove all files in the bin/ directory.
+## Resultados rápidos
+
+Comando:
+.\bin\image_pipeline.exe --n 20 --w 2560 --h 1440 --streams 8 --sigma 1.6
+
+Salida:
+Config: 2560x1440, images=20, streams=8, tpb=256, sigma=1.60
+Timing(ms): H2D=6.971 BLUR=33.267 SOBEL=1.132 D2H=104.127 TOTAL=627.521
+Los resultados se guardan en out/results/ (archivos PGM de blur y bordes).
