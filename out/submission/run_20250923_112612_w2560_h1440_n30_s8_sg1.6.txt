@@ -1,0 +1,2 @@
+﻿Config: 2560x1440, images=30, streams=8, tpb=256, sigma=1.60
+Timing(ms): H2D=11.019  BLUR=33.301  SOBEL=4.550  D2H=154.377  TOTAL=943.037

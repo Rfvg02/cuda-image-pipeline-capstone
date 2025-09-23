@@ -1,0 +1,10 @@
+﻿date,cmd,W,H,N,streams,sigma,H2D_ms,BLUR_ms,SOBEL_ms,D2H_ms,TOTAL_ms
+W,H,N,streams,sigma,H2D_ms,BLUR_ms,SOBEL_ms,D2H_ms,TOTAL_ms
+2560,1440,30,8,1.6,11.0186,33.3011,4.5504,154.377,943.037
+2025-09-23T11:26:12,".\bin\image_pipeline.exe --n 30 --w 2560 --h 1440 --streams 8 --sigma 1.6",2560,1440,30,8,1.6,11.019,33.301,4.550,154.377,943.037
+W,H,N,streams,sigma,H2D_ms,BLUR_ms,SOBEL_ms,D2H_ms,TOTAL_ms
+1920,1080,40,8,1.4,7.81603,5.00918,1.28429,137.28,702.05
+2025-09-23T11:26:13,".\bin\image_pipeline.exe --n 40 --w 1920 --h 1080 --streams 8 --sigma 1.4",1920,1080,40,8,1.4,7.816,5.009,1.284,137.280,702.050
+W,H,N,streams,sigma,H2D_ms,BLUR_ms,SOBEL_ms,D2H_ms,TOTAL_ms
+3840,2160,12,8,2,11.9112,5.68128,1.45168,126.412,801.482
+2025-09-23T11:26:14,".\bin\image_pipeline.exe --n 12 --w 3840 --h 2160 --streams 8 --sigma 2",3840,2160,12,8,2,11.911,5.681,1.452,126.412,801.482

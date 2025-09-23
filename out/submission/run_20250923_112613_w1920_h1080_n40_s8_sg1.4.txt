@@ -1,0 +1,2 @@
+﻿Config: 1920x1080, images=40, streams=8, tpb=256, sigma=1.40
+Timing(ms): H2D=7.816  BLUR=5.009  SOBEL=1.284  D2H=137.280  TOTAL=702.050
