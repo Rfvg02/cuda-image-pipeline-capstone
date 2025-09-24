@@ -19,3 +19,12 @@ W,H,N,streams,sigma,H2D_ms,BLUR_ms,SOBEL_ms,D2H_ms,TOTAL_ms
 2025-09-23T11:44:02,".\bin\image_pipeline.exe --n 12 --w 3840 --h 2160 --streams 8 --sigma 2",3840,2160,12,8,2,8.581,5.682,1.402,139.203,848.987
 W,H,N,streams,sigma,H2D_ms,BLUR_ms,SOBEL_ms,D2H_ms,TOTAL_ms
 2560,1440,20,8,1.6,17.113,38.7485,2.81632,199.513,1298.1
+W,H,N,streams,sigma,H2D_ms,BLUR_ms,SOBEL_ms,D2H_ms,TOTAL_ms
+2560,1440,30,8,1.6,18.9108,7.77219,1.84784,281.959,1857.97
+2025-09-23T22:04:38,".\bin\image_pipeline.exe --n 30 --w 2560 --h 1440 --streams 8 --sigma 1.6",2560,1440,30,8,1.6,18.911,7.772,1.848,281.959,1857.972
+W,H,N,streams,sigma,H2D_ms,BLUR_ms,SOBEL_ms,D2H_ms,TOTAL_ms
+1920,1080,40,8,1.4,9.71578,5.93629,1.44714,264.831,1513.72
+2025-09-23T22:04:40,".\bin\image_pipeline.exe --n 40 --w 1920 --h 1080 --streams 8 --sigma 1.4",1920,1080,40,8,1.4,9.716,5.936,1.447,264.831,1513.718
+W,H,N,streams,sigma,H2D_ms,BLUR_ms,SOBEL_ms,D2H_ms,TOTAL_ms
+3840,2160,12,8,2,16.2933,7.3856,1.67677,206.837,1593.2
+2025-09-23T22:04:42,".\bin\image_pipeline.exe --n 12 --w 3840 --h 2160 --streams 8 --sigma 2",3840,2160,12,8,2,16.293,7.386,1.677,206.837,1593.203
